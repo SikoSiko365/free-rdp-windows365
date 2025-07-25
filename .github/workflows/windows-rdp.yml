@@ -1,0 +1,27 @@
+name: Windows RDP
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Setup Ngrok
+      run: |
+        choco install ngrok
+        ngrok authtoken ${{ secrets.NGROK_TOKEN }}
+      
+    - name: Enable RDP
+      run: |
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Terminal Server" -name "fDenyTSConnections" -value 0
+      
+    - name: Start Ngrok Tunnel
+      run: Start-Process ngrok -ArgumentList "tcp 3389"
+
+    - name: Display RDP Login Info
+      run: |
+        echo "Wait 1-2 minutes then check your Ngrok dashboard: https://dashboard.ngrok.com/endpoints"
+        whoami
